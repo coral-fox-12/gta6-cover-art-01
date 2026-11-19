@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sunset Cover Studio — poster maker</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<main class="app">
+  <section class="controls" aria-label="Poster controls">
+    <header>
+      <h1>Sunset Cover Studio</h1>
+      <p>Your photo + a caption, made into a sunset poster. Everything runs
+      on your machine — photos are never uploaded.</p>
+    </header>
+
+    <section class="group" aria-label="Photos">
+      <h2>Photos</h2>
+      <div class="photo-slot">
+        <label>Photo A <input id="photo-a" type="file" accept="image/*"></label>
+        <div class="row">
+          <button type="button" data-sample="a" data-photo="pier">Sample: Pier</button>
+          <button type="button" data-sample="a" data-photo="boulevard">Sample: Boulevard</button>
+        </div>
+        <label>Zoom A <input id="zoom-a" type="range" min="1" max="2.5" step="0.05" value="1"> <span id="zoom-a-val">100%</span></label>
+        <label>Pan A ↔ <input id="panx-a" type="range" min="-0.4" max="0.4" step="0.02" value="0"></label>
+        <label>Pan A ↕ <input id="pany-a" type="range" min="-0.4" max="0.4" step="0.02" value="0"></label>
+      </div>
+      <div class="photo-slot">
+        <label>Photo B <input id="photo-b" type="file" accept="image/*"></label>
+        <div class="row">
+          <button type="button" data-sample="b" data-photo="boulevard">Sample: Boulevard</button>
+          <button type="button" data-sample="b" data-photo="pier">Sample: Pier</button>
+        </div>
+        <label>Zoom B <input id="zoom-b" type="range" min="1" max="2.5" step="0.05" value="1"> <span id="zoom-b-val">100%</span></label>
+        <label>Pan B ↔ <input id="panx-b" type="range" min="-0.4" max="0.4" step="0.02" value="0"></label>
+        <label>Pan B ↕ <input id="pany-b" type="range" min="-0.4" max="0.4" step="0.02" value="0"></label>
+      </div>
+    </section>
+
+    <section class="group" aria-label="Layout">
+      <h2>Layout</h2>
+      <div class="row wrap" role="group" aria-label="Panel layout">
+        <button type="button" data-layout="duo" class="active">Split Duo</button>
+        <button type="button" data-layout="triptych">Triptych</button>
+        <button type="button" data-layout="hero">Hero + Strip</button>
+        <button type="button" data-layout="single">Full Frame</button>
+      </div>
+    </section>
+
+    <section class="group" aria-label="Colour grade">
+      <h2>Colour grade</h2>
+      <div class="row wrap" role="group" aria-label="Colour grade">
+        <button type="button" data-grade="sunset" class="active">Sunset</button>
+        <button type="button" data-grade="neon">Neon Nights</button>
+        <button type="button" data-grade="gold">Vice Gold</button>
+        <button type="button" data-grade="noir">Mono Noir</button>
+      </div>
+    </section>
+
+    <section class="group" aria-label="Caption">
+      <h2>Caption</h2>
+      <label>Title <input id="title" type="text" maxlength="48" value="Sunset Heist"></label>
+      <label>Subtitle <input id="subtitle" type="text" maxlength="48" value="Neon nights · 2026"></label>
+      <div class="row wrap" role="group" aria-label="Title font">
+        <button type="button" data-font="anton" class="active">Anton</button>
+        <button type="button" data-font="archivo">Archivo Black</button>
+      </div>
+      <label>Title size <input id="title-size" type="range" min="0.7" max="1.4" step="0.05" value="1"> <span id="title-size-val">100%</span></label>
+    </section>
+
+    <section class="group" aria-label="Preview size">
+      <h2>Preview</h2>
+      <div class="row wrap" role="group" aria-label="Preview aspect">
+        <button type="button" data-aspect="square" class="active">Square</button>
+        <button type="button" data-aspect="portrait">Portrait</button>
+        <button type="button" data-aspect="wide">Wide</button>
+      </div>
+    </section>
+
+    <section class="group export" aria-label="Export">
+      <h2>Export PNG</h2>
+      <div class="row wrap">
+        <button type="button" id="export-1080x1080">1080 × 1080</button>
+        <button type="button" id="export-1080x1350">1080 × 1350</button>
+        <button type="button" id="export-1920x1080">1920 × 1080</button>
+      </div>
+      <button type="button" id="export-all" class="primary">Export all three sizes</button>
+      <p id="status" role="status">Pick a photo, set the caption, export.</p>
+    </section>
+  </section>
+
+  <section class="preview" aria-label="Poster preview">
+    <canvas id="cover" width="1080" height="1080" aria-label="The poster preview"></canvas>
+  </section>
+</main>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
