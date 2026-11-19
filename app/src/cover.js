@@ -1,13 +1,14 @@
-// Sunset Cover Studio — poster engine.
+// Sunset Cover Studio — the poster engine.
 //
-// Draws a multi-panel poster in the style of a sunset poster,
-// using only the user's own photos and vendored OFL fonts. No Rockstar
-// artwork, logo or font is used anywhere: the sun disc, skyline and palm
-// silhouettes below are drawn from scratch with canvas paths.
+// Turns a photo (or two) plus a caption into a sunset poster drawn on a
+// canvas: multi-panel layouts, a colour grade, and bold display lettering.
+// Everything here is drawn from scratch — the sun disc, the skyline, the
+// palm-free silhouettes — using only the user's own photos and the vendored
+// OFL fonts. No Rockstar artwork, logo or typeface appears anywhere.
 //
-// The engine is resolution-independent: drawPoster() takes any canvas and
-// renders the current state at that canvas's pixel size, so the on-screen
-// preview and the exported PNGs share exactly the same drawing code.
+// The engine is resolution-independent: drawPoster() renders the current
+// state onto any canvas at that canvas's own pixel size, so the on-screen
+// preview and the exported PNGs share one drawing path.
 
 export const LAYOUTS = {
   duo: {
@@ -76,16 +77,17 @@ export const GRADES = {
   },
 };
 
-/** Deterministic pseudo-random from an integer seed (for skyline windows). */
+/** Deterministic pseudo-random in [0, 1) from an integer seed. */
 function seeded(n) {
   const x = Math.sin(n * 127.1 + 311.7) * 43758.5453;
   return x - Math.floor(x);
 }
 
-/** Draws `img` to cover rect (x, y, w, h), with zoom and pan offsets.
- *  When the photo must be cropped top-to-bottom (a wide panel holding a
- *  square or portrait photo), the crop is biased toward the top of the
- *  frame, where faces usually are, instead of dead centre. */
+/**
+ * Draws `img` so it covers rect (x, y, w, h), honouring zoom and pan.
+ * When the photo is cropped top-to-bottom, the crop leans toward the top
+ * of the frame — faces usually sit there, not dead centre.
+ */
 function drawCoverFit(ctx, img, x, y, w, h, crop) {
   const zoom = crop?.zoom ?? 1;
   const dx = crop?.dx ?? 0;
@@ -97,11 +99,10 @@ function drawCoverFit(ctx, img, x, y, w, h, crop) {
   ctx.drawImage(img, x + (w - pw) / 2 + dx * w, y + (h - ph) / 2 + dy * h - topBias, pw, ph);
 }
 
-/** Sunset disc with slatted lower half, drawn from scratch. */
+/** A sunset disc whose lower half is cut into slats, drawn from scratch. */
 function drawSun(ctx, cx, cy, r) {
   ctx.save();
-  // Clip to the disc first: the slats below must only cut the sun itself,
-  // never the photo underneath it.
+  // Clip to the disc so the slats cut only the sun, never the photo below.
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
   ctx.clip();
@@ -111,7 +112,7 @@ function drawSun(ctx, cx, cy, r) {
   g.addColorStop(1, '#ff2e88');
   ctx.fillStyle = g;
   ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
-  // Slats: cut horizontal gaps through the lower half of the disc.
+  // Slats: horizontal gaps through the lower half of the disc.
   ctx.globalCompositeOperation = 'destination-out';
   const slats = 5;
   for (let i = 0; i < slats; i += 1) {
@@ -121,7 +122,7 @@ function drawSun(ctx, cx, cy, r) {
   ctx.restore();
 }
 
-/** Dark skyline silhouette with a few lit windows, drawn from scratch. */
+/** A dark skyline with a few lit windows, drawn from scratch. */
 function drawSkyline(ctx, x, y, w, h) {
   ctx.save();
   ctx.fillStyle = 'rgba(16, 6, 28, 0.92)';
@@ -131,7 +132,7 @@ function drawSkyline(ctx, x, y, w, h) {
     const bw = w * (0.06 + seeded(i) * 0.09);
     const bh = h * (0.35 + seeded(i + 50) * 0.6);
     ctx.fillRect(bx, y + h - bh, bw, bh);
-    // Lit windows: tiny warm dots on some buildings.
+    // Lit windows: small warm dots on some of the buildings.
     ctx.fillStyle = 'rgba(255, 214, 120, 0.9)';
     const rows = Math.floor(bh / (h * 0.09));
     const cols = Math.floor(bw / (w * 0.03));
@@ -149,7 +150,7 @@ function drawSkyline(ctx, x, y, w, h) {
   ctx.restore();
 }
 
-/** Applies the colour grade over a panel rect: tint gradients + vignette. */
+/** Tints a panel rect with the grade, then darkens its edges. */
 function applyGrade(ctx, x, y, w, h, grade) {
   ctx.save();
   ctx.beginPath();
@@ -164,7 +165,7 @@ function applyGrade(ctx, x, y, w, h, grade) {
   ctx.globalCompositeOperation = 'soft-light';
   ctx.fillStyle = g;
   ctx.fillRect(x, y, w, h);
-  // Vignette: darken the panel edges so the photo sits in the poster.
+  // Vignette: pull the panel edges darker so the photo sits in the poster.
   const v = ctx.createRadialGradient(
     x + w / 2, y + h / 2, Math.min(w, h) * 0.32,
     x + w / 2, y + h / 2, Math.max(w, h) * 0.72,
@@ -177,7 +178,7 @@ function applyGrade(ctx, x, y, w, h, grade) {
   ctx.restore();
 }
 
-/** Draws one photo panel: photo, grade, inner keyline. */
+/** One photo panel: the photo itself, its grade, and a keyline. */
 function drawPanel(ctx, panel, photos, crops, grade, W, H) {
   const x = panel.x * W;
   const y = panel.y * H;
@@ -196,7 +197,7 @@ function drawPanel(ctx, panel, photos, crops, grade, W, H) {
     ctx.filter = 'none';
     applyGrade(ctx, x, y, w, h, grade);
   } else {
-    // Empty panel: a placeholder sunset gradient so the layout still reads.
+    // No photo yet: a placeholder sunset so the layout still reads.
     const g = ctx.createLinearGradient(x, y, x, y + h);
     g.addColorStop(0, '#3a1c5c');
     g.addColorStop(0.6, '#c22e6e');
@@ -212,7 +213,7 @@ function drawPanel(ctx, panel, photos, crops, grade, W, H) {
   ctx.strokeRect(x + ctx.lineWidth / 2, y + ctx.lineWidth / 2, w - ctx.lineWidth, h - ctx.lineWidth);
 }
 
-/** Word-wraps `text` to at most two lines that fit `maxWidth` at `font`. */
+/** Word-wraps `text` into at most two lines that fit `maxWidth`. */
 function wrapTitle(ctx, text, maxWidth) {
   const words = text.split(/\s+/).filter(Boolean);
   if (!words.length) return [];
@@ -224,14 +225,14 @@ function wrapTitle(ctx, text, maxWidth) {
     } else if (lines.length === 1) {
       lines.push(word);
     } else {
-      // Two lines are full: squeeze the word onto the second line anyway.
+      // Both lines are full: squeeze the word onto the second line anyway.
       lines[1] += ` ${word}`;
     }
   }
   return lines.filter(Boolean);
 }
 
-/** Draws the caption band: gradient, big display title, subtitle, footer. */
+/** The caption band: gradient, big display title, subtitle, footer line. */
 function drawCaption(ctx, state, W, H, bandY, bandH, overlay) {
   const { title, subtitle, font } = state;
   if (overlay) {
@@ -247,7 +248,7 @@ function drawCaption(ctx, state, W, H, bandY, bandH, overlay) {
     g.addColorStop(1, '#ffb347');
     ctx.fillStyle = g;
     ctx.fillRect(0, bandY, W, bandH);
-    // Thin neon rules top and bottom of the band.
+    // Thin neon rules at the top and bottom of the band.
     ctx.fillStyle = '#00e5ff';
     ctx.fillRect(0, bandY, W, Math.max(3, H * 0.004));
     ctx.fillStyle = 'rgba(255,255,255,0.85)';
@@ -309,8 +310,9 @@ function drawCaption(ctx, state, W, H, bandY, bandH, overlay) {
 }
 
 /**
- * Draws the whole poster onto `canvas` at its own pixel size.
- * `state`: { photos: {a, b}, crops: {a, b}, layout, grade, title, subtitle, font, titleScale }
+ * Renders the whole poster onto `canvas` at its own pixel size.
+ * `state`: { photos: {a, b}, crops: {a, b}, layout, grade, title,
+ * subtitle, font, titleScale }
  */
 export function drawPoster(canvas, state) {
   const ctx = canvas.getContext('2d');

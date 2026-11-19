@@ -120,10 +120,14 @@ function bindPhotoControls(slot) {
 bindPhotoControls('a');
 bindPhotoControls('b');
 
+function syncToggleButtons(attr, value) {
+  document.querySelectorAll(`[data-${attr}]`).forEach((b) => b.classList.toggle('active', b.dataset[attr] === value));
+}
+
 document.querySelectorAll('[data-layout]').forEach((btn) => {
   btn.addEventListener('click', () => {
     state.layout = btn.dataset.layout;
-    document.querySelectorAll('[data-layout]').forEach((b) => b.classList.toggle('active', b === btn));
+    syncToggleButtons('layout', state.layout);
     setStatus(`Layout: ${LAYOUTS[state.layout].label}`);
     redraw();
   });
@@ -132,16 +136,28 @@ document.querySelectorAll('[data-layout]').forEach((btn) => {
 document.querySelectorAll('[data-grade]').forEach((btn) => {
   btn.addEventListener('click', () => {
     state.grade = btn.dataset.grade;
-    document.querySelectorAll('[data-grade]').forEach((b) => b.classList.toggle('active', b === btn));
+    syncToggleButtons('grade', state.grade);
     setStatus(`Grade: ${GRADES[state.grade].label}`);
     redraw();
   });
 });
 
+/** Shuffle: pick a random layout + grade, so one click explores the looks. */
+$('shuffle').addEventListener('click', () => {
+  const layouts = Object.keys(LAYOUTS);
+  const grades = Object.keys(GRADES);
+  state.layout = layouts[Math.floor(Math.random() * layouts.length)];
+  state.grade = grades[Math.floor(Math.random() * grades.length)];
+  syncToggleButtons('layout', state.layout);
+  syncToggleButtons('grade', state.grade);
+  setStatus(`Shuffle: ${LAYOUTS[state.layout].label} + ${GRADES[state.grade].label}`);
+  redraw();
+});
+
 document.querySelectorAll('[data-aspect]').forEach((btn) => {
   btn.addEventListener('click', () => {
     state.aspect = btn.dataset.aspect;
-    document.querySelectorAll('[data-aspect]').forEach((b) => b.classList.toggle('active', b === btn));
+    syncToggleButtons('aspect', state.aspect);
     setStatus(`Preview: ${ASPECTS[state.aspect].label}`);
     redraw();
   });
@@ -150,7 +166,7 @@ document.querySelectorAll('[data-aspect]').forEach((btn) => {
 document.querySelectorAll('[data-font]').forEach((btn) => {
   btn.addEventListener('click', () => {
     state.font = btn.dataset.font;
-    document.querySelectorAll('[data-font]').forEach((b) => b.classList.toggle('active', b === btn));
+    syncToggleButtons('font', state.font);
     redraw();
   });
 });
@@ -197,9 +213,9 @@ if (shot) {
     if (subtitle !== undefined) { state.subtitle = subtitle; $('subtitle').value = subtitle; }
     if (photoA) state.photos.a = await loadImage(`samples/${photoA}.jpg`);
     if (photoB) state.photos.b = await loadImage(`samples/${photoB}.jpg`);
-    document.querySelectorAll('[data-layout]').forEach((b) => b.classList.toggle('active', b.dataset.layout === state.layout));
-    document.querySelectorAll('[data-grade]').forEach((b) => b.classList.toggle('active', b.dataset.grade === state.grade));
-    document.querySelectorAll('[data-aspect]').forEach((b) => b.classList.toggle('active', b.dataset.aspect === state.aspect));
+    syncToggleButtons('layout', state.layout);
+    syncToggleButtons('grade', state.grade);
+    syncToggleButtons('aspect', state.aspect);
     redraw();
   });
 } else {
